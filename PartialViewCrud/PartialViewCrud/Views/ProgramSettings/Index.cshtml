@@ -1,0 +1,161 @@
+﻿@model List<PartialViewCrud.Models.ProgramSettingsVM>
+    
+@{
+ViewBag.Title = "Index";
+}
+<div class="container">
+    <div class="row bg-info" style="background:#d9edf7; text-align:center;">
+    @if (ViewData["Message"] != null) { 
+        <h5 class="bg-info">@ViewData["Message"]</h5>
+    }
+    </div>
+    
+    <table class="table table-striped table-bordered">
+        <caption class="text-left"><h2>Program Settings</h2></caption>
+        <thead>
+          <tr>
+            <th>System ID</th>
+            <th>Group Name</th>
+            <th>Setting Name</th>
+            <th>Value</th>
+            <th> 
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addModal">Add</button>           
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+          <tr>
+            <td id="td-system-id">@item.System_Id</td>
+            <td id="td-group-name">@item.Group_Name</td>
+            <td id="td-setting-name">@item.Setting_Name</td>
+            <td id="td-value">@item.Value</td>
+            <td>
+                <button type="button" class="btn-edit btn btn-primary" data-toggle="modal" data-target="#addModal">Edit</button>
+                <a href="/ProgramSettings/Delete/id=@item.System_Id" data-id="@item.System_Id" data-toggle="modal" data-target="#deleteModal" class="modalLink btn btn-danger">Delete</a>            
+            </td>
+          </tr>
+        }     
+        </tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="addModalLabel">Settings Details</h4>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("ActionMethodName", "ControllerName", FormMethod.Post, new { id = "myForm" })) 
+                {
+                    <div class="form-group">
+                        <label for="">System ID</label>
+                        <input type="text" class="form-control" name="system-id" id="txt-system-id" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="">Group Name<sup class="text-danger">*</sup></label>
+                        <input type="text" class="form-control" name="group-name" id="txt-group-name" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="">Setting Name<sup class="text-danger">*</sup></label>
+                        <input type="text" class="form-control" name="setting-name" id="txt-setting-name" placeholder="">
+                    </div>
+                    <div class="form-group">
+                        <label for="">Value</label>
+                        <input type="text" class="form-control" name="value" id="txt-value" placeholder="">
+                    </div>                    
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="close" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="add">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="deleteModalLabel">Delete</h4>
+            </div>
+            <div class="modal-body"> 
+                <h3>Are you sure?</h3>
+            </div>
+            <div class="modal-footer">
+                @using (Html.BeginForm("Delete", "ProgramSettings", FormMethod.Post))
+                {
+                    @Html.Hidden("id", "", new { @class = "hiddenid" });
+                    <button type="button" class="btn btn-info" id="close" data-dismiss="modal">No</button>
+                    <button class="btn btn-danger" name="Delete" value="delete">Delete</button>
+                } 
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    $("#add").click(function () {
+        var form = $("form#myForm");
+        var $groupName = $("form#myForm #txt-group-name");
+        var $settingName = $("form#myForm #txt-setting-name");
+
+        // Validation
+        if (form.find('#txt-group-name').val() == "" || form.find('#txt-setting-name').val() == "") {
+            if ($groupName.val() == "")
+                $groupName.addClass('require-error');
+            if ($settingName.val() == "")
+                $settingName.addClass('require-error');
+            return;
+        }
+
+        form.attr("action", "@Url.Action("Create", "ProgramSettings")");
+        form.submit();
+    });
+
+    $('#txt-group-name, #txt-setting-name').keyup(function () {        
+        var $groupName = $("form#myForm #txt-group-name");
+        var $settingName = $("form#myForm #txt-setting-name");
+
+        if ($groupName.val() != "")
+            $groupName.removeClass('require-error');
+        if ($settingName.val() != "")
+            $settingName.removeClass('require-error');
+    });
+
+    $(document).on("click", ".modalLink", function () {
+        var passedID = $(this).data('id');
+        $("#deleteModal .hiddenid").val(passedID);
+    });
+
+    $('.btn-edit').click(function () {
+        $this = $(this).closest('tr');
+        $this.find('#td-id');
+        $("form#myForm #txt-system-id").val($this.find('#td-system-id').text()).attr('readonly', 'true');
+        $("form#myForm #txt-group-name").val($this.find('#td-group-name').text());
+        $("form#myForm #txt-setting-name").val($this.find('#td-setting-name').text());
+        $("form#myForm #txt-value").val($this.find('#td-value').text());
+    });
+
+    $('#addModal, #deleteModal').on('hidden.bs.modal', function () {
+        $(this).find('form').trigger('reset');
+        $("form#myForm #txt-system-id").removeAttr("readonly");
+        $("form#myForm #txt-group-name").removeClass('require-error');
+        $("form#myForm #txt-setting-name").removeClass('require-error');
+    });
+});
+</script>
+<style>
+    .require-error {
+        border-color: rgb(218, 28, 23);
+    }
+</style>
